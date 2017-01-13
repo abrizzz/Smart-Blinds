@@ -18,3 +18,5 @@ Smart-Blinds is a project where I motorized and automated the roller blinds in m
 - [Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
 - [Home Assistant](https://home-assistant.io/)
 - Python code to control servo
+
+![ui screenshot](https://raw.githubusercontent.com/abrizzz/Smart-Blinds/master/screenshots/ha.png)
