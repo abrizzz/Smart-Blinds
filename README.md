@@ -20,4 +20,4 @@ Smart-Blinds is a project where I motorized and automated the roller blinds in m
 - Python code to control servo
 
 
-<img src="https://raw.githubusercontent.com/abrizzz/Smart-Blinds/master/screenshots/ha.png" style="height:480px"/>
+<img src="https://raw.githubusercontent.com/abrizzz/Smart-Blinds/master/screenshots/ha.png" />
