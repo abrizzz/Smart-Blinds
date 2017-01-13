@@ -1,0 +1,143 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret lat
+  longitude: !secret lon
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 33
+  # metric for Metric, imperial for Imperial
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Australia/Melbourne
+  unit_system: metric
+
+# Enables the frontend
+frontend:
+
+http:
+  # Uncomment this to add a password (recommended!)
+  # api_password: !secret pw
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time.
+history:
+
+# View all events in a logbook
+logbook:
+
+# Track the sun
+sun:
+
+mqtt:
+  broker: 127.0.0.1
+  port: 1883
+  client_id: home-assistant-1
+  username: pi
+  password: raspberry
+
+device_tracker:
+  platform: nmap_tracker
+  hosts: 10.0.0.6/24
+  consider_home: 600
+
+
+group:
+  weather:
+    - sun.sun
+    - sensor.time
+    - sensor.date
+  blinds:
+    name: Blinds
+    entities:
+      - cover.blinds
+      - input_slider.blinds_slider
+      - sensor.blinds_status
+
+input_slider:
+  blinds_slider:
+    name: Blinds
+    initial: 0
+    min: 0
+    max: 1
+    step: 0.25
+
+shell_command:
+  set_blinds_to_slider: '/home/pi/Projects/Smart-Blinds/blinds.py {{ states.input_slider.blinds_slider.state}}'
+  set_blinds_to_half: '/home/pi/Projects/Smart-Blinds/blinds.py 0.5'
+
+
+automation:
+ - alias: 'Adjust Blinds'
+   hide_entity: True
+   trigger:
+     platform: state
+     entity_id: input_slider.blinds_slider
+   action:
+    - service: shell_command.set_blinds_to_slider
+
+ - alias: 'Close Blinds after Sunset'
+   hide_entity: True
+   trigger:
+     platform: sun
+     event: sunset
+     offset: "00:30:00"
+   action:
+    - service: cover.close_cover
+
+ - alias: 'Open Blinds halfway at 08:30'
+   hide_entity: True
+   trigger:
+     platform: time
+     after: "08:30:00"
+   action:
+    - service: shell_command.set_blinds_to_half
+
+ - alias: 'Open Blinds fully at 09:00'
+   hide_entity: True
+   trigger:
+     platform: time
+     after: "09:00:00"
+   action:
+    - service: cover.open_cover
+
+sensor:
+  - platform: template
+    sensors:
+      blinds_status:
+        friendly_name: 'Status'
+        value_template: '{{ states.cover.blinds.state }}'
+
+  - platform: time_date
+    display_options:
+      - 'time'
+      - 'date'
+
+cover:
+- platform: command_line
+  covers:
+    blinds:
+      friendly_name: 'Blinds'
+      command_open: '/home/pi/Projects/Smart-Blinds/blinds.py 1'
+      command_close: '/home/pi/Projects/Smart-Blinds/blinds.py 0'
+      command_stop: ''
+      command_state: 'cat /home/pi/Projects/Smart-Blinds/status'
+      value_template: >
+        {% if value == '1.0' %}
+        100
+        {% elif value == '0.75' %}
+        75
+        {% elif value == '0.5' %}
+        50
+        {% elif value == '0.25' %}
+        25
+        {% elif value == '0.0' %}
+        0
+        {% endif %}
